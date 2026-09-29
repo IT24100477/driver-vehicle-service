@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# JWT development keystore
+src/main/resources/keys/

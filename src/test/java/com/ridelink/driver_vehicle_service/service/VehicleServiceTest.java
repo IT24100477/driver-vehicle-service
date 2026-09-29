@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -217,6 +219,34 @@ class VehicleServiceTest {
 
         verify(vehicleRepository, times(1))
                 .save(existingVehicle);
+    }
+    @Test
+    void updateVehicle_shouldThrowExceptionWhenVehicleDoesNotExist() {
+
+        VehicleRequest request = new VehicleRequest();
+
+        request.setDriverId(1L);
+        request.setRegistrationNumber("CAB-5678");
+        request.setVehicleType("Car");
+        request.setModel("Honda Vezel");
+        request.setColour("Black");
+
+        when(vehicleRepository.findById(9999L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                ResourceNotFoundException.class,
+                () -> vehicleService.updateVehicle(9999L, request)
+        );
+
+        verify(vehicleRepository, times(1))
+                .findById(9999L);
+
+        verify(driverRepository, never())
+                .findById(anyLong());
+
+        verify(vehicleRepository, never())
+                .save(any(Vehicle.class));
     }
 
     @Test

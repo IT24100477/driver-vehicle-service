@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -175,5 +176,82 @@ class DriverServiceTest {
 
         verify(driverRepository, times(1))
                 .findByAvailableTrue();
+    }
+
+    @Test
+    void getAllDrivers_shouldReturnAllDrivers() {
+
+    Driver driver1 = new Driver(
+            101L,
+            "B1234567",
+            true,
+            "Colombo",
+            "Colombo 05"
+    );
+
+    driver1.setDriverId(1L);
+
+    Driver driver2 = new Driver(
+            102L,
+            "B7654321",
+            false,
+            "Kandy",
+            "Kandy City"
+    );
+
+    driver2.setDriverId(2L);
+
+    when(driverRepository.findAll())
+            .thenReturn(List.of(driver1, driver2));
+
+    List<DriverResponse> responses =
+            driverService.getAllDrivers();
+
+    assertEquals(2, responses.size());
+    assertEquals(1L, responses.get(0).getDriverId());
+    assertEquals(2L, responses.get(1).getDriverId());
+
+    verify(driverRepository, times(1))
+            .findAll();
+    }
+    @Test
+    void updateDriver_shouldUpdateDriverSuccessfully() {
+
+    Driver existingDriver = new Driver(
+            101L,
+            "B1234567",
+            false,
+            "Colombo",
+            "Colombo 05"
+    );
+
+    existingDriver.setDriverId(1L);
+
+    DriverRequest request = new DriverRequest();
+
+    request.setUserId(101L);
+    request.setLicenseNumber("B9999999");
+    request.setServiceArea("Kandy");
+    request.setCurrentLocation("Kandy City");
+
+    when(driverRepository.findById(1L))
+            .thenReturn(Optional.of(existingDriver));
+
+    when(driverRepository.save(any(Driver.class)))
+            .thenReturn(existingDriver);
+
+    DriverResponse response =
+            driverService.updateDriver(1L, request);
+
+    assertNotNull(response);
+    assertEquals("B9999999", response.getLicenseNumber());
+    assertEquals("Kandy", response.getServiceArea());
+    assertEquals("Kandy City", response.getCurrentLocation());
+
+    verify(driverRepository, times(1))
+            .findById(1L);
+
+    verify(driverRepository, times(1))
+            .save(existingDriver);
     }
 }
