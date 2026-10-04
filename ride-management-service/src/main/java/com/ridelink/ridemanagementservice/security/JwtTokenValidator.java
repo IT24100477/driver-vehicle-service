@@ -16,7 +16,7 @@ public class JwtTokenValidator {
     private final SecretKey key;
 
     public JwtTokenValidator(
-            @Value("${jwt.secret:RideLinkSuperSecretSecurityKey2026WithSufficientLengthForHS256Algorithm}") String secret) {
+            @Value("${jwt.secret}") String secret) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
