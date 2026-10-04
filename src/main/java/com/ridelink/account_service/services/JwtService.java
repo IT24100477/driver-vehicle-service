@@ -36,6 +36,8 @@ public class JwtService {
         long expirationTime = 1000 * 60 * 60 * 10; // 10 hours
 
         return Jwts.builder()
+                .issuer("ridelink-auth-service")
+                .audience().add("ridelink-services").and()
                 .subject(email)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
