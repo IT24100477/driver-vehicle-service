@@ -1,43 +1,30 @@
 package com.ridelink.farepayment.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Entity
-@Table(name = "final_fares", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_final_fares_ride_id", columnNames = "ride_id")
-})
-public class FinalFare {
+@Document(collection = "final_fares")
+public class FinalFare implements NumericDocument {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ride_id", nullable = false)
+    @Indexed(unique = true, name = "uk_final_fares_ride_id")
     private Long rideId;
-
-    @Column(name = "passenger_id", nullable = false)
     private Long passengerId;
 
-    @Column(name = "distance_km", nullable = false, precision = 10, scale = 2)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal distanceKm;
-
-    @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
 
-    @Column(nullable = false, precision = 10, scale = 2)
+    @Field(targetType = FieldType.DECIMAL128)
     private BigDecimal amount;
-
-    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     protected FinalFare() {
@@ -49,40 +36,15 @@ public class FinalFare {
         this.distanceKm = distanceKm;
         this.durationMinutes = durationMinutes;
         this.amount = amount;
+        this.createdAt = Instant.now();
     }
 
-    @PrePersist
-    void prePersist() {
-        if (createdAt == null) {
-            createdAt = Instant.now();
-        }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Long getRideId() {
-        return rideId;
-    }
-
-    public Long getPassengerId() {
-        return passengerId;
-    }
-
-    public BigDecimal getDistanceKm() {
-        return distanceKm;
-    }
-
-    public Integer getDurationMinutes() {
-        return durationMinutes;
-    }
-
-    public BigDecimal getAmount() {
-        return amount;
-    }
-
-    public Instant getCreatedAt() {
-        return createdAt;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public Long getRideId() { return rideId; }
+    public Long getPassengerId() { return passengerId; }
+    public BigDecimal getDistanceKm() { return distanceKm; }
+    public Integer getDurationMinutes() { return durationMinutes; }
+    public BigDecimal getAmount() { return amount; }
+    public Instant getCreatedAt() { return createdAt; }
 }

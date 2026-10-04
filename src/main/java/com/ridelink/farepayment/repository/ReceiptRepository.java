@@ -1,13 +1,13 @@
 package com.ridelink.farepayment.repository;
 
 import com.ridelink.farepayment.entity.Receipt;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
+public interface ReceiptRepository extends MongoRepository<Receipt, Long> {
 
-    Optional<Receipt> findByPayment_Id(Long paymentId);
+    Optional<Receipt> findByPaymentId(Long paymentId);
 
     Optional<Receipt> findByReceiptNumber(String receiptNumber);
 }

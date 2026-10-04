@@ -8,8 +8,8 @@ import com.ridelink.farepayment.entity.FinalFare;
 import com.ridelink.farepayment.exception.DuplicateFinalFareException;
 import com.ridelink.farepayment.exception.FinalFareNotFoundException;
 import com.ridelink.farepayment.repository.FinalFareRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,7 +33,6 @@ public class FareService {
         return new FareEstimateResponse(distanceKm, calculateAmount(distanceKm));
     }
 
-    @Transactional
     public FinalFare createFinalFare(FinalFareRequest request) {
         if (finalFareRepository.existsByRideId(request.rideId())) {
             throw new DuplicateFinalFareException("Final fare already exists for rideId: " + request.rideId());
@@ -41,15 +40,18 @@ public class FareService {
 
         BigDecimal distanceKm = normalizeDistance(request.distanceKm());
         BigDecimal amount = calculateAmount(distanceKm);
-        return finalFareRepository.save(new FinalFare(
-                request.rideId(),
-                request.passengerId(),
-                distanceKm,
-                request.durationMinutes(),
-                amount));
+        try {
+            return finalFareRepository.insert(new FinalFare(
+                    request.rideId(),
+                    request.passengerId(),
+                    distanceKm,
+                    request.durationMinutes(),
+                    amount));
+        } catch (DuplicateKeyException exception) {
+            throw new DuplicateFinalFareException("Final fare already exists for rideId: " + request.rideId());
+        }
     }
 
-    @Transactional(readOnly = true)
     public FinalFare getFinalFareByRideId(Long rideId) {
         return finalFareRepository.findByRideId(rideId)
                 .orElseThrow(() -> new FinalFareNotFoundException("Final fare not found for rideId: " + rideId));

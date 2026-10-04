@@ -7,8 +7,8 @@ import com.ridelink.farepayment.exception.PaymentNotFoundException;
 import com.ridelink.farepayment.exception.ReceiptNotFoundException;
 import com.ridelink.farepayment.repository.PaymentRepository;
 import com.ridelink.farepayment.repository.ReceiptRepository;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -30,22 +30,33 @@ public class ReceiptService {
         this.paymentRepository = paymentRepository;
     }
 
-    @Transactional
     public Receipt createReceipt(Payment payment) {
         if (payment.getStatus() != PaymentStatus.SUCCESS) {
             throw new IllegalArgumentException("Receipt can only be generated after a successful payment.");
         }
 
-        return receiptRepository.findByPayment_Id(payment.getId())
-                .orElseGet(() -> receiptRepository.save(new Receipt(payment, generateReceiptNumber())));
+        var existingReceipt = receiptRepository.findByPaymentId(payment.getId());
+        if (existingReceipt.isPresent()) {
+            return existingReceipt.get();
+        }
+        try {
+            return receiptRepository.insert(new Receipt(payment, generateReceiptNumber()));
+        } catch (DuplicateKeyException exception) {
+            // A concurrent caller may already have issued this payment's receipt.
+            return receiptRepository.findByPaymentId(payment.getId()).orElseThrow(() -> exception);
+        }
     }
 
-    @Transactional(readOnly = true)
     public Receipt getReceiptByPaymentId(Long paymentId) {
-        paymentRepository.findById(paymentId)
+        Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found for id: " + paymentId));
-        return receiptRepository.findByPayment_Id(paymentId)
-                .orElseThrow(() -> new ReceiptNotFoundException("Receipt not found for paymentId: " + paymentId));
+        return receiptRepository.findByPaymentId(paymentId).orElseGet(() -> {
+            // Standalone MongoDB has no cross-document transactions; repair a missed write on retry.
+            if (payment.getStatus() == PaymentStatus.SUCCESS) {
+                return createReceipt(payment);
+            }
+            throw new ReceiptNotFoundException("Receipt not found for paymentId: " + paymentId);
+        });
     }
 
     private String generateReceiptNumber() {

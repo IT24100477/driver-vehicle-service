@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@Import(MongoTestConfiguration.class)
 class FareServiceTest {
 
     @Autowired
@@ -64,5 +66,21 @@ class FareServiceTest {
 
         assertThatThrownBy(() -> fareService.createFinalFare(request))
                 .isInstanceOf(DuplicateFinalFareException.class);
+    }
+
+    @Test
+    void concurrentFinalFareRequestsCreateOnlyOneFare() throws Exception {
+        FinalFareRequest request = new FinalFareRequest(103L, 203L, new BigDecimal("7.50"), 20);
+        var results = ConcurrentTestSupport.concurrently(6, () -> {
+            try {
+                fareService.createFinalFare(request);
+                return true;
+            } catch (DuplicateFinalFareException exception) {
+                return false;
+            }
+        });
+
+        assertThat(results).containsOnlyOnce(true);
+        assertThat(finalFareRepository.count()).isEqualTo(1);
     }
 }
