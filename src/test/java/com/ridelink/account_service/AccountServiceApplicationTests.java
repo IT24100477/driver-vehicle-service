@@ -1,4 +1,4 @@
-package com.redlink.account_service;
+package com.ridelink.account_service;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

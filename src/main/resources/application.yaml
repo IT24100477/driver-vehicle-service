@@ -4,8 +4,11 @@ server:
 spring:
   data:
     mongodb:
+      database: ridelink_account_db
       uri: mongodb://localhost:27017/ridelink_account_db
 
 jwt:
   issuer: ridelink-auth-service
   audience: ridelink-services
+
+logging.level.org.springframework.security: DEBUG
