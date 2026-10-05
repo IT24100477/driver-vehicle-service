@@ -1,27 +1,31 @@
 package com.ridelink.ridemanagementservice.controller;
 
-import com.ridelink.ridemanagementservice.dto.*;
-import com.ridelink.ridemanagementservice.model.Location;
-import com.ridelink.ridemanagementservice.model.RideStatus;
-import com.ridelink.ridemanagementservice.service.RideService;
+import java.time.Instant;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.time.Instant;
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import com.ridelink.ridemanagementservice.dto.CancelRideRequest;
+import com.ridelink.ridemanagementservice.dto.CreateRideRequest;
+import com.ridelink.ridemanagementservice.dto.RideCompleteRequest;
+import com.ridelink.ridemanagementservice.dto.RideResponse;
+import com.ridelink.ridemanagementservice.model.Location;
+import com.ridelink.ridemanagementservice.model.RideStatus;
+import com.ridelink.ridemanagementservice.service.RideService;
 
 @ExtendWith(MockitoExtension.class)
 class RideControllerTest {
